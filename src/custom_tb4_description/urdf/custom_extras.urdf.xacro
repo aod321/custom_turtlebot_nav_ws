@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<!--
+  Custom extras URDF for our bare Create3 + RPLIDAR + USB camera setup.
+  This URDF is published by a SECOND robot_state_publisher (named custom_extras_rsp)
+  alongside the system's Create3 RSP. It only adds the sensor links, not Create3 base.
+
+  Mounting:
+    - RPLIDAR: 3cm behind dock-direction center, 12cm above base, yaw=-90deg
+              (triangle marker points to robot's left, scan direction = clockwise)
+    - Camera:  15cm behind center on aluminum pole, 42cm above base, facing forward
+-->
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="custom_extras">
+
+  <!-- base_link is a placeholder; Create3's RSP also publishes it -->
+  <link name="base_link"/>
+
+  <!-- ===== RPLIDAR ===== -->
+  <joint name="rplidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="rplidar_link"/>
+    <origin xyz="-0.03 0.0 0.12" rpy="0 0 -1.5708"/>
+  </joint>
+
+  <link name="rplidar_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://turtlebot4_description/meshes/rplidar.dae" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.035" length="0.04"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.17"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <!-- ===== Aluminum pole (visual only) ===== -->
+  <joint name="pole_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="pole_link"/>
+    <origin xyz="-0.15 0.0 0.21" rpy="0 0 0"/>
+  </joint>
+
+  <link name="pole_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.01" length="0.42"/>
+      </geometry>
+      <material name="silver">
+        <color rgba="0.75 0.75 0.75 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <!-- ===== USB Camera ===== -->
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="-0.15 0.0 0.42" rpy="0 0 0"/>
+  </joint>
+
+  <link name="camera_link">
+    <visual>
+      <geometry>
+        <box size="0.025 0.08 0.025"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.025 0.08 0.025"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <!-- Camera optical frame (Z forward, X right, Y down — vision convention) -->
+  <joint name="camera_optical_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="camera_optical_frame"/>
+    <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708"/>
+  </joint>
+
+  <link name="camera_optical_frame"/>
+
+</robot>
