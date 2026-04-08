@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 User=ubuntu
 Environment=PATH=/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ExecStart=/opt/ros/humble/bin/fastdds discovery -i 0 --listening-addresses 0.0.0.0:11811
+ExecStart=/usr/bin/python3 /opt/ros/humble/tools/fastdds/fastdds.py discovery -i 0 --listening-addresses 0.0.0.0:11811
 Restart=on-failure
 RestartSec=3
 
