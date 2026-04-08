@@ -1,138 +1,119 @@
 # custom_turtlebot_nav_ws
 
-Custom ROS2 workspace for a bare iRobot Create3 with manually-mounted RPLIDAR A1
-and USB camera. Targets ROS2 Humble on a Raspberry Pi 4.
+ROS2 Humble workspace for a bare iRobot Create3 + RPLIDAR A1 + USB camera,
+deployed across a Raspberry Pi 4 (robot side) and a dedicated workstation
+(ML inference + visualization).
 
-## Why this exists
+## System topology
 
-Stock TurtleBot4 packages assume the standard sensor mount (RPLIDAR on the OAK-D
-shell, OAK-D as the camera). This workspace adapts the stack for a custom
-hardware build:
+```
+Create3 (192.168.186.2)            Workstation (5GHz WiFi)
+   |                                  |
+   | usb0                             | wlan0
+   |                                  |
+   +------- RPi 4 (192.168.111.230) --+
+              ROS_DOMAIN_ID=64
+              FastDDS discovery server :11811
+```
 
-- **RPLIDAR A1** mounted on top of the bare Create3, 12 cm above base, 3 cm
-  behind center, triangle marker pointing to the robot's left (yaw = -π/2).
-- **USB camera** on an aluminum pole at the rear of the Create3, 42 cm above
-  base, facing forward.
+All three machines share `ROS_DOMAIN_ID=64` and connect through a FastDDS
+discovery server running on the RPi. The workstation uses super-client mode
+so it doesn't disturb Create3's DDS state.
 
-It does **not** modify any files in `/opt/ros/humble/`. Everything customized
-lives in this workspace, so `apt upgrade` will not break it.
+See `docs/specs/2026-04-08-multi-machine-deployment-design.md` for the
+architecture rationale.
+
+## Who are you?
+
+| Role             | On which machine | Purpose                                |
+|------------------|------------------|----------------------------------------|
+| Robot maintainer | RPi (`ssh rpi`)  | Start sensors / SLAM / Nav2, edit URDF |
+| ML / algorithm   | Workstation      | Run object_detector, tune ML models    |
+| Mission / viz    | Workstation      | RViz, send goals, write task nodes     |
+
+## Quick start
+
+### "I want to connect this robot from the workstation"
+
+```bash
+cd ~/code/custom_turtlebot_nav_ws
+colcon build --symlink-install   # only if not built
+source install/setup.bash
+source scripts/setup_workstation.sh
+
+# Verify the link end-to-end
+./scripts/smoke_test.sh
+
+# Then bring up RViz (and optionally the ML inference)
+ros2 launch custom_tb4_bringup workstation_viz.launch.py
+ros2 launch custom_tb4_bringup workstation_ml.launch.py     # in another terminal
+```
+
+### "I want to (re)start sensors / SLAM / Nav2 on the RPi"
+
+```bash
+ssh rpi
+cd ~/custom_turtlebot_nav_ws
+source install/setup.bash
+source scripts/setup_robot.sh
+
+# Pick one mode:
+ros2 launch custom_tb4_bringup robot_sensors.launch.py    # sensors only
+ros2 launch custom_tb4_bringup robot_slam.launch.py       # sensors + SLAM
+ros2 launch custom_tb4_bringup robot_nav.launch.py \
+     map:=/home/ubuntu/maps/my_environment.yaml           # sensors + AMCL + Nav2
+ros2 launch custom_tb4_bringup robot_full.launch.py \
+     map:=/home/ubuntu/maps/my_environment.yaml \
+     enable_detection:=true enable_patrol:=true           # nav + ML + patrol
+```
+
+## Build
+
+```bash
+cd ~/code/custom_turtlebot_nav_ws       # or ~/custom_turtlebot_nav_ws on RPi
+colcon build --symlink-install
+source install/setup.bash
+```
 
 ## Packages
 
 | Package | Purpose |
 |---------|---------|
-| `custom_tb4_description` | URDF/xacro for the rplidar + camera mounts. Runs a secondary `robot_state_publisher` (`custom_extras_rsp`) that publishes the additional sensor TFs alongside the system Create3 RSP. |
-| `custom_tb4_bringup` | Launch files for sensors, SLAM, navigation, and the full system. Bundles config overrides (camera calibration, etc.). |
-| `custom_tb4_autonomy` | Python nodes: object detection (TFLite), patrol state machine, navigation goal sender, dock-aware teleop. |
+| `custom_tb4_description` | URDF/xacro for the rplidar + camera mounts. Runs a secondary `robot_state_publisher` (`custom_extras_rsp`) alongside the system Create3 RSP. |
+| `custom_tb4_bringup` | Launch files (prefixed `robot_*` and `workstation_*`) and shared config (camera calibration, default RViz). |
+| `custom_tb4_autonomy` | Python nodes: `object_detector`, `patrol`, `nav_goal_sender`, `tf_broadcaster`, `teleop`. |
+
+## Launch file naming
+
+Launch files are flat in `src/custom_tb4_bringup/launch/` and prefixed by
+where they run:
+
+| Prefix | Where to run | Example |
+|---|---|---|
+| `robot_*.launch.py` | RPi (`ssh rpi`) | `robot_sensors.launch.py`, `robot_slam.launch.py` |
+| `workstation_*.launch.py` | Workstation | `workstation_viz.launch.py`, `workstation_ml.launch.py` |
+
+## One-time commissioning (only when setting up a new robot)
+
+See `docs/setup_new_robot.md` for the full checklist.
 
 ## Hardware assumptions
 
 - iRobot Create3 (firmware H.2.6 or compatible)
-- Raspberry Pi 4 (8 GB) running Ubuntu 22.04 + ROS2 Humble
-- Slamtec RPLIDAR A1 on `/dev/RPLIDAR` (udev rule), CH340 USB adapter
-- USB webcam on `/dev/video0` (e.g., Realtek/Logitech UVC, 640x480 @ 15 FPS)
-- TurtleBot4 systemd service (`turtlebot4.service`) running, providing the
-  Create3 bridge and base `robot_state_publisher`
+- Raspberry Pi 4 (8 GB) on Ubuntu 22.04 + ROS2 Humble
+- Slamtec RPLIDAR A1 on `/dev/RPLIDAR` (CH340 USB adapter)
+- USB UVC webcam on `/dev/video0` supporting MJPG
+- TurtleBot4 systemd service running on the RPi (provides Create3 bridge
+  and the official Create3 robot_state_publisher)
 
-## Build
+## Documentation
 
-```bash
-cd ~/custom_turtlebot_nav_ws
-colcon build --symlink-install
-source install/setup.bash
-```
+- `docs/specs/2026-04-08-multi-machine-deployment-design.md` — design doc for the multi-machine architecture
+- `docs/plans/2026-04-08-multi-machine-deployment.md` — implementation plan
+- `docs/troubleshooting.md` — symptom → fix cookbook
+- `docs/setup_new_robot.md` — full one-time commissioning checklist
+- `CLAUDE.md` — context for AI assistants working in this repo
 
-## Usage
+## License
 
-The TurtleBot4 system service (`turtlebot4.service`) must already be running.
-It provides the Create3 odom→base_link TF and the standard Create3 URDF.
-
-### 1. SLAM (build a map)
-
-```bash
-ros2 launch custom_tb4_bringup slam.launch.py
-# In another terminal: drive around with teleop
-ros2 run custom_tb4_autonomy teleop  # press 'd' to undock, 'i/j/k/l/,' to drive
-# When done, save the map:
-ros2 run nav2_map_server map_saver_cli -f ~/maps/my_environment
-```
-
-### 2. Navigation (use a saved map)
-
-```bash
-ros2 launch custom_tb4_bringup nav.launch.py \
-  map:=/home/ubuntu/maps/my_environment.yaml
-```
-
-In RViz2, set Fixed Frame to `map`, then use **2D Pose Estimate** to set the
-initial pose (matching where the robot actually is in the map). Then use
-**2D Nav Goal** to send navigation targets.
-
-### 3. Full system (nav + detection + patrol)
-
-```bash
-ros2 launch custom_tb4_bringup full_system.launch.py \
-  map:=/home/ubuntu/maps/my_environment.yaml \
-  enable_detection:=true \
-  enable_patrol:=true \
-  waypoints_file:=$(ros2 pkg prefix custom_tb4_autonomy)/share/custom_tb4_autonomy/config/waypoints.yaml
-```
-
-## Calibration / mounting tweaks
-
-If you change the physical mounting of the LIDAR or camera, edit the joint
-origins in `custom_tb4_description/urdf/custom_extras.urdf.xacro` and rebuild.
-
-The RPLIDAR's yaw (`-1.5708` = -90°) corresponds to the triangle marker
-pointing to the robot's left side. If your unit is mounted differently, adjust
-this value (positive = counterclockwise viewed from above).
-
-## Known issues / gotchas
-
-- **Don't kill `turtlebot4.service` processes.** Killing the system
-  `robot_state_publisher` breaks the TF tree and requires a Create3 reboot to
-  recover.
-- **DDS RELIABLE QoS scaling.** Create3 publishes `/tf` with RELIABLE QoS.
-  Starting many TF subscribers (AMCL + Nav2) over a short time can stress
-  FastDDS matching. If a freshly-spawned node can't see `odom→base_link`, wait
-  10–15 s before testing.
-- **`auto_standby` on RPLIDAR.** The stock turtlebot4 launch sets
-  `auto_standby: True`, which often leaves the publisher inactive. Our launch
-  forces `False`.
-- **Map borders.** When building the map, drive at least 1–2 m past the
-  charging dock in every direction so the costmap has padding around the
-  start position. Otherwise Nav2 may report `worldToMap failed` once the
-  robot leaves the dock.
-
-## Layout
-
-```
-custom_turtlebot_nav_ws/
-└── src/
-    ├── custom_tb4_description/
-    │   ├── package.xml
-    │   ├── CMakeLists.txt
-    │   ├── urdf/custom_extras.urdf.xacro
-    │   └── launch/description.launch.py
-    ├── custom_tb4_bringup/
-    │   ├── package.xml
-    │   ├── CMakeLists.txt
-    │   ├── launch/
-    │   │   ├── rplidar.launch.py
-    │   │   ├── camera.launch.py
-    │   │   ├── sensors.launch.py
-    │   │   ├── slam.launch.py
-    │   │   ├── nav.launch.py
-    │   │   └── full_system.launch.py
-    │   └── config/camera_calibration.yaml
-    └── custom_tb4_autonomy/
-        ├── package.xml
-        ├── setup.py
-        ├── custom_tb4_autonomy/
-        │   ├── object_detector_node.py
-        │   ├── patrol_node.py
-        │   ├── nav_goal_sender.py
-        │   ├── tf_broadcaster.py
-        │   └── tb4_teleop.py
-        └── config/waypoints.yaml
-```
+MIT
