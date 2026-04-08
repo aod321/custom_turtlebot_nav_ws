@@ -18,7 +18,7 @@ echo "=== 1. Environment ==="
 
 echo
 echo "=== 2. Discovery server reachable ==="
-if nc -zvw 2 192.168.111.230 11811 >/dev/null 2>&1; then
+if nc -zuvw 2 192.168.111.230 11811 >/dev/null 2>&1; then
     ok "discovery server port open"
 else
     bad "discovery server unreachable at 192.168.111.230:11811"

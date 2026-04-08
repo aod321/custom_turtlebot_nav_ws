@@ -38,7 +38,7 @@ fi
 echo
 echo "=== Discovery server port ($RPI_IP:$DISC_PORT) ==="
 if command -v nc >/dev/null 2>&1; then
-    if nc -zvw 2 "$RPI_IP" "$DISC_PORT" 2>&1; then
+    if nc -zuvw 2 "$RPI_IP" "$DISC_PORT" 2>&1; then
         echo "OK: port reachable"
     else
         echo "FAIL: discovery server not reachable"
