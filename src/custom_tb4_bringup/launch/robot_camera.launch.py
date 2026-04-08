@@ -16,10 +16,15 @@ def generate_launch_description():
         DeclareLaunchArgument('camera_info_url',
                               default_value='file://' + default_calib),
 
+        # Push the node into /camera namespace so image_transport's
+        # auto-generated child topics (image_raw/compressed, /theora, etc.)
+        # also land under /camera/image_raw/* — a flat /image_raw remap only
+        # rewrites the base topic and breaks RViz's compressed display.
         Node(
             package='v4l2_camera',
             executable='v4l2_camera_node',
             name='usb_camera',
+            namespace='camera',
             output='screen',
             parameters=[{
                 'video_device': LaunchConfiguration('video_device'),
@@ -31,9 +36,5 @@ def generate_launch_description():
                 'camera_frame_id': 'camera_link',
                 'camera_info_url': LaunchConfiguration('camera_info_url'),
             }],
-            remappings=[
-                ('/image_raw', '/camera/image_raw'),
-                ('/camera_info', '/camera/camera_info'),
-            ],
         ),
     ])

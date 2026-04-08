@@ -32,6 +32,7 @@ code.
 | Symptom | Root cause | Fix |
 |---|---|---|
 | Many DDS subscribers cause Create3 to drop `/tf` messages | Create3 publishes `/tf` RELIABLE; matching scales linearly with subscribers | Use Discovery Server + super-client mode on workstation |
+| Restarting SLAM/Nav2 a few times stalls Create3's `/tf` writer until physical reboot | Phantom RELIABLE reader proxies pile up on Create3 faster than DDS liveliness reaps them | `setup_robot.sh`/`setup_workstation.sh` set `FASTRTPS_DEFAULT_PROFILES_FILE=scripts/fastdds_qos_override.xml` which downgrades `/tf` readers to BEST_EFFORT (writer stops tracking unacked samples) |
 | `ros2 topic echo` fails but Python rclpy subscriber works | ros2 daemon cache stale | `ros2 daemon stop && ros2 daemon start` |
 | RPLIDAR `/scan` Publisher count = 0 | Stock turtlebot4 launch sets `auto_standby: True` | Our `robot_rplidar.launch.py` forces `False` |
 | AMCL drops every scan with "timestamp earlier than transform cache" | static_transform_publisher restarted with newer timestamp than scans | Don't restart static TF publishers; if you must, also restart AMCL |

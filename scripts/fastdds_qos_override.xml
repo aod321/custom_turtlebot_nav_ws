@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  FastDDS reader QoS override for /tf.
+
+  Why: Create3 publishes /tf with RELIABLE QoS. A RELIABLE writer keeps
+  per-matched-reader history to track unacked samples. Each time we kill
+  and relaunch SLAM/Nav2/RViz, the old readers leave phantom proxies on
+  Create3's writer side until DDS liveliness/lease timeout reaps them
+  (10s+). Cycling launches faster than that piles up phantoms, exhausts
+  the writer's resource_limits, and Create3's /tf writer enters a
+  permanently stalled state — recoverable only by physically rebooting
+  the robot.
+
+  DDS QoS rule: a reader's reliability may be <= the writer's. Declaring
+  /tf readers as BEST_EFFORT still matches Create3's RELIABLE writer, but
+  the writer no longer tracks unacked samples for them — eliminating the
+  resource exhaustion path entirely.
+
+  Mechanism: rmw_fastrtps looks up a per-topic data_reader profile by the
+  ROS-prefixed topic name (`rt/<topic>`) when creating a subscriber. We
+  do NOT override /tf_static because it relies on TRANSIENT_LOCAL +
+  RELIABLE for late-joiner delivery and is low-rate (no churn risk).
+
+  Wire-in: scripts/setup_robot.sh and scripts/setup_workstation.sh both
+  export FASTRTPS_DEFAULT_PROFILES_FILE pointing at this file. The
+  participant profile is left to be generated from the existing
+  ROS_DISCOVERY_SERVER / ROS_SUPER_CLIENT env vars — this XML only
+  contributes the data_reader profile, so the discovery topology is
+  unchanged.
+-->
+<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
+
+    <data_reader profile_name="rt/tf">
+        <qos>
+            <reliability>
+                <kind>BEST_EFFORT</kind>
+            </reliability>
+        </qos>
+    </data_reader>
+
+</profiles>

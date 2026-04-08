@@ -10,9 +10,12 @@ export ROS_DOMAIN_ID=64
 export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 export ROS_DISCOVERY_SERVER="192.168.186.3:11811"
 
-# Remove any inherited XML profile from earlier turtlebot4 setup; we now
-# use the discovery server protocol exclusively.
-unset FASTRTPS_DEFAULT_PROFILES_FILE
+# Override /tf reader QoS to BEST_EFFORT so kill/restart cycles don't
+# accumulate phantom RELIABLE readers on Create3's writer and stall it.
+# See scripts/fastdds_qos_override.xml for the full rationale.
+_script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+export FASTRTPS_DEFAULT_PROFILES_FILE="${_script_dir}/fastdds_qos_override.xml"
+unset _script_dir
 
 echo "[setup_robot] ROS_DOMAIN_ID=$ROS_DOMAIN_ID"
 echo "[setup_robot] ROS_DISCOVERY_SERVER=$ROS_DISCOVERY_SERVER"
