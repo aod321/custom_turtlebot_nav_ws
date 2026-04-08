@@ -4,7 +4,7 @@ project(custom_tb4_description)
 find_package(ament_cmake REQUIRED)
 
 install(
-  DIRECTORY urdf launch meshes
+  DIRECTORY urdf launch
   DESTINATION share/${PROJECT_NAME}
 )
 
