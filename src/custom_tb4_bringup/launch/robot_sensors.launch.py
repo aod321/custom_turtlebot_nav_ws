@@ -19,10 +19,10 @@ def generate_launch_description():
         # 2. RPLIDAR
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(pkg_bringup, 'launch', 'rplidar.launch.py'))),
+                os.path.join(pkg_bringup, 'launch', 'robot_rplidar.launch.py'))),
 
         # 3. USB camera
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(pkg_bringup, 'launch', 'camera.launch.py'))),
+                os.path.join(pkg_bringup, 'launch', 'robot_camera.launch.py'))),
     ])
