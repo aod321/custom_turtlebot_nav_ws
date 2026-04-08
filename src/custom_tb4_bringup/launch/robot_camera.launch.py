@@ -23,7 +23,10 @@ def generate_launch_description():
             output='screen',
             parameters=[{
                 'video_device': LaunchConfiguration('video_device'),
-                'pixel_format': 'MJPG',
+                # YUYV - MJPG decoding crashes cv_bridge with this v4l2_camera version.
+                # We rely on image_transport_plugins to provide JPEG-compressed transport
+                # downstream instead, which still saves WiFi bandwidth.
+                'pixel_format': 'YUYV',
                 'image_size': [640, 480],
                 'camera_frame_id': 'camera_link',
                 'camera_info_url': LaunchConfiguration('camera_info_url'),
