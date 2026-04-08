@@ -48,10 +48,10 @@ check_hz() {
 check_hz /tf
 check_hz /scan
 
-if timeout 3 ros2 topic hz /camera/image_raw/compressed 2>&1 | grep -q "average rate"; then
-    ok "/camera/image_raw/compressed streaming"
+if timeout 3 ros2 topic hz /camera/image_raw 2>&1 | grep -q "average rate"; then
+    ok "/camera/image_raw streaming (compressed transport loads on demand)"
 else
-    warn "/camera/image_raw/compressed NOT streaming (run robot_sensors.launch.py on RPi?)"
+    warn "/camera/image_raw NOT streaming (run robot_sensors.launch.py on RPi?)"
 fi
 
 echo
