@@ -19,7 +19,7 @@ def generate_launch_description():
         # Sensors (rplidar + camera + custom URDF TFs)
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(pkg_bringup, 'launch', 'sensors.launch.py'))),
+                os.path.join(pkg_bringup, 'launch', 'robot_sensors.launch.py'))),
 
         # SLAM Toolbox (use turtlebot4_navigation's well-tuned config)
         IncludeLaunchDescription(

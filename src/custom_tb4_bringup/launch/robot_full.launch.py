@@ -39,7 +39,7 @@ def generate_launch_description():
         # Nav stack (includes sensors)
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(pkg_bringup, 'launch', 'nav.launch.py')),
+                os.path.join(pkg_bringup, 'launch', 'robot_nav.launch.py')),
             launch_arguments={'map': LaunchConfiguration('map')}.items()),
 
         # Object detector (optional)
