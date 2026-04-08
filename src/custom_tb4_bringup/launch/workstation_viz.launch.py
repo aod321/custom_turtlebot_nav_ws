@@ -4,6 +4,12 @@ Run on the workstation only. Requires:
   - workspace built and sourced
   - scripts/setup_workstation.sh sourced (sets DDS env vars)
   - RPi-side sensors already running (otherwise nothing to display)
+
+Defaults to the minimal `default.rviz` (TF + LaserScan + Map) to avoid the
+RobotModel/Image segfaults documented in CLAUDE.md. To opt into the upstream
+turtlebot4 RViz layout (more displays, may be unstable on some GPUs):
+    ros2 launch custom_tb4_bringup workstation_viz.launch.py \\
+        rviz_config:=$(ros2 pkg prefix custom_tb4_bringup)/share/custom_tb4_bringup/config/nav2_view.rviz
 """
 import os
 

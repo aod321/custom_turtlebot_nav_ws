@@ -20,6 +20,9 @@ def generate_launch_description():
         default_value='/home/ubuntu/maps/my_environment.yaml',
         description='Full path to map YAML file')
 
+    localization_params = os.path.join(pkg_bringup, 'config', 'localization.yaml')
+    nav2_params = os.path.join(pkg_bringup, 'config', 'nav2.yaml')
+
     return LaunchDescription([
         map_arg,
 
@@ -28,14 +31,18 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(
                 os.path.join(pkg_bringup, 'launch', 'robot_sensors.launch.py'))),
 
-        # AMCL localization
+        # AMCL localization (project-local copy of turtlebot4's tuned params)
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(pkg_tb4_nav, 'launch', 'localization.launch.py')),
-            launch_arguments={'map': LaunchConfiguration('map')}.items()),
+            launch_arguments={
+                'map': LaunchConfiguration('map'),
+                'params': localization_params,
+            }.items()),
 
-        # Nav2
+        # Nav2 (project-local copy of turtlebot4's tuned params)
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(pkg_tb4_nav, 'launch', 'nav2.launch.py'))),
+                os.path.join(pkg_tb4_nav, 'launch', 'nav2.launch.py')),
+            launch_arguments={'params_file': nav2_params}.items()),
     ])

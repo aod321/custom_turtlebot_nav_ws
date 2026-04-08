@@ -15,14 +15,17 @@ def generate_launch_description():
     pkg_bringup = get_package_share_directory('custom_tb4_bringup')
     pkg_tb4_nav = get_package_share_directory('turtlebot4_navigation')
 
+    slam_params = os.path.join(pkg_bringup, 'config', 'slam.yaml')
+
     return LaunchDescription([
         # Sensors (rplidar + camera + custom URDF TFs)
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(pkg_bringup, 'launch', 'robot_sensors.launch.py'))),
 
-        # SLAM Toolbox (use turtlebot4_navigation's well-tuned config)
+        # SLAM Toolbox with project-local copy of turtlebot4's tuned params
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(pkg_tb4_nav, 'launch', 'slam.launch.py'))),
+                os.path.join(pkg_tb4_nav, 'launch', 'slam.launch.py')),
+            launch_arguments={'params': slam_params}.items()),
     ])
