@@ -1,7 +1,7 @@
 """Navigation mode: sensors + AMCL + Nav2.
 
 Requires a pre-built map. Usage:
-    ros2 launch custom_tb4_bringup nav.launch.py map:=/home/ubuntu/maps/my_environment.yaml
+    ros2 launch custom_tb4_bringup robot_nav.launch.py map:=/home/ubuntu/maps/my_environment.yaml
 """
 import os
 from ament_index_python.packages import get_package_share_directory

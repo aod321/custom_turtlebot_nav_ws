@@ -2,7 +2,7 @@
 
 Use this for building maps. The system Create3 RSP must already be running
 (via turtlebot4 service). Run:
-    ros2 launch custom_tb4_bringup slam.launch.py
+    ros2 launch custom_tb4_bringup robot_slam.launch.py
 """
 import os
 from ament_index_python.packages import get_package_share_directory

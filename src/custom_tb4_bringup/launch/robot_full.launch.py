@@ -2,13 +2,13 @@
 
 Usage:
     # Just navigation
-    ros2 launch custom_tb4_bringup full_system.launch.py
+    ros2 launch custom_tb4_bringup robot_full.launch.py
 
     # Navigation + detection
-    ros2 launch custom_tb4_bringup full_system.launch.py enable_detection:=true
+    ros2 launch custom_tb4_bringup robot_full.launch.py enable_detection:=true
 
     # Navigation + detection + patrol
-    ros2 launch custom_tb4_bringup full_system.launch.py \\
+    ros2 launch custom_tb4_bringup robot_full.launch.py \\
         enable_detection:=true enable_patrol:=true \\
         waypoints_file:=/path/to/waypoints.yaml
 """
