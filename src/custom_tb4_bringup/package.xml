@@ -13,6 +13,7 @@
   <exec_depend>custom_tb4_autonomy</exec_depend>
   <exec_depend>rplidar_ros</exec_depend>
   <exec_depend>v4l2_camera</exec_depend>
+  <exec_depend>image_transport_plugins</exec_depend>
   <exec_depend>slam_toolbox</exec_depend>
   <exec_depend>nav2_bringup</exec_depend>
   <exec_depend>turtlebot4_navigation</exec_depend>
