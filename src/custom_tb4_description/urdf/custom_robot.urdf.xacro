@@ -1,18 +1,23 @@
 <?xml version="1.0"?>
 <!--
-  Custom extras URDF for our bare Create3 + RPLIDAR + USB camera setup.
-  This URDF is published by a SECOND robot_state_publisher (named custom_extras_rsp)
-  alongside the system's Create3 RSP. It only adds the sensor links, not Create3 base.
+  Complete URDF for our bare iRobot Create3 + custom-mounted RPLIDAR + USB camera.
 
-  Mounting:
-    - RPLIDAR: 3cm behind dock-direction center, 12cm above base, yaw=-90deg
-              (triangle marker points to robot's left, scan direction = clockwise)
-    - Camera:  15cm behind center on aluminum pole, 42cm above base, facing forward
+  This file is intended to REPLACE the system turtlebot4 robot_description
+  (which assumes the standard turtlebot4 shell + sensor mounts that we don't
+  have). It includes the official Create3 base model and adds our custom
+  sensor mounts at their actual physical positions.
+
+  Mounting (measured on the real robot):
+    - RPLIDAR A1: 3 cm behind dock-direction center, 12 cm above base,
+                  yaw = -pi/2 (triangle marker points to robot's left)
+    - USB camera: 15 cm behind center on aluminum pole, 42 cm above base,
+                  facing forward
+    - Aluminum pole: visual only, 1 cm radius, 42 cm long
 -->
-<robot xmlns:xacro="http://ros.org/wiki/xacro" name="custom_extras">
+<robot name="custom_tb4" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <!-- base_link is a placeholder; Create3's RSP also publishes it -->
-  <link name="base_link"/>
+  <!-- ===== Create3 base ===== -->
+  <xacro:include filename="$(find irobot_create_description)/urdf/create3.urdf.xacro" />
 
   <!-- ===== RPLIDAR ===== -->
   <joint name="rplidar_joint" type="fixed">
@@ -38,7 +43,7 @@
     </inertial>
   </link>
 
-  <!-- ===== Aluminum pole (visual only) ===== -->
+  <!-- ===== Aluminum pole (visual only, holds the camera) ===== -->
   <joint name="pole_joint" type="fixed">
     <parent link="base_link"/>
     <child link="pole_link"/>
@@ -55,9 +60,13 @@
         <color rgba="0.75 0.75 0.75 1.0"/>
       </material>
     </visual>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
   </link>
 
-  <!-- ===== USB Camera ===== -->
+  <!-- ===== USB camera ===== -->
   <joint name="camera_joint" type="fixed">
     <parent link="base_link"/>
     <child link="camera_link"/>
