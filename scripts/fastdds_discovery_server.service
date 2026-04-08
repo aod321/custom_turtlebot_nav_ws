@@ -6,7 +6,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=ubuntu
-ExecStart=/bin/bash -c 'source /opt/ros/humble/setup.bash && exec fast-discovery-server -i 0 --listening-addresses 0.0.0.0:11811'
+ExecStart=/bin/bash -c 'source /opt/ros/humble/setup.bash && exec fast-discovery-server -i 0'
 Restart=on-failure
 RestartSec=3
 
