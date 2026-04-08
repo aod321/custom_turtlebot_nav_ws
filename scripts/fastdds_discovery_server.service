@@ -1,0 +1,15 @@
+[Unit]
+Description=FastDDS Discovery Server (custom_turtlebot_nav_ws)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Environment=PATH=/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/opt/ros/humble/bin/fastdds discovery -i 0 --listening-addresses 0.0.0.0:11811
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
